@@ -1,0 +1,24 @@
+{
+    "version": 10,
+    "cmakeMinimumRequired": {
+        "major": 4, "minor": 2, "patch": 3
+    },
+    "configurePresets": [
+        {
+            "generator": "",
+            "name": "default",
+            "displayName": "Default config",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {}
+        }
+    ],
+    "buildPresets": [
+        {"name": "default", "configurePreset": "default"}
+    ],
+    "workflowPresets": [{
+        "name": "default","steps": [
+            {"type": "configure", "name": "default"},
+            {"type": "build", "name": "default"}
+        ]
+    }]
+}
