@@ -1,0 +1,11 @@
+## ビルド関係
+*build*/
+CMakeUserPresets.json
+
+## clangd 関係
+.cache/
+compile_commands.json
+.clangd
+
+## メモ関係
+*.md
