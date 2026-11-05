@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ja-jp">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <!-- SDL3 のウィンドウタイトルで上書きされる -->
+    <title>Hatogamo sample Page</title>
+    <style>
+        div.canvas_border {
+            display: inline flow-root;
+            border: 1px solid black;
+            justify-content: center;
+            position: relative; /* キャンバスと他要素を重ねるため */
+        }
+        /* the canvas *must not* have any border or padding, or mouse coords will be wrong */
+        canvas.sdl_window {
+            border: 0px none;
+            background-color: black;
+        }
+        p.text_area {
+            margin: 0.5lh 0 0 1ch;
+            font-size: xx-large;
+            position: absolute; /* キャンバスと重ねるため */
+            white-space: pre-wrap; /* テキスト内の改行と空白文字を反映する */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="canvas_border">
+        <!-- テキストの書き出し先 -->
+        <p class="text_area" id="text_area">[ここにテキストが入る]</p>
+        <!-- このキャンバスがウィンドウに当たる -->
+        <canvas class="sdl_window" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
+    </div>
+    <script type='text/javascript'>
+        // Emscripten のモジュールクラス
+        class EmModule {
+            constructor() {
+                // SDL3の描画先キャンバスを設定
+                this.canvas = document.getElementById('canvas');
+                this.canvas.addEventListener("webglcontextlost", (e) => {
+                    alert('ウィンドウの描画ができないためページをリロードしてください．');
+                    e.preventDefault();
+                }, false);
+            }
+
+            // 標準出力関数
+            static print(...args){
+                console.log(args.join(' '));
+            };
+
+            // エラーメッセージ出力関数
+            static printErr(...args) {
+                console.error(args.join(' '));
+            }
+        };
+        // モジュールオブジェクトを生成する
+        let Module = new EmModule();
+    </script>
+    {{{ SCRIPT }}}
+</body>
+
+</html>
