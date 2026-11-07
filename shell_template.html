@@ -7,6 +7,13 @@
     <!-- SDL3 のウィンドウタイトルで上書きされる -->
     <title>Hatogamo sample Page</title>
     <style>
+        body.body {
+            margin: 0;
+            min-height: 100dvh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         div.canvas_border {
             display: inline flow-root;
             border: 1px solid black;
@@ -27,7 +34,7 @@
     </style>
 </head>
 
-<body>
+<body class="body">
     <div class="canvas_border">
         <!-- テキストの書き出し先 -->
         <p class="text_area" id="text_area">[ここにテキストが入る]</p>
