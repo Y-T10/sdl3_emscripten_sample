@@ -22,10 +22,12 @@ using renderer_ptr = std::unique_ptr<SDL_Renderer, decltype([](SDL_Renderer* ptr
 static window_ptr mainWindow = NULL;
 static renderer_ptr output = NULL;
 
-// `text_area`のテキストを更新する
-EM_JS(void, WriteText, (const char* text), {
-    document.getElementById('text_area').textContent = UTF8ToString(text);
-});
+namespace {
+    // `text_area`を持つ要素を更新する
+    EM_JS(void, WriteText, (const char* text), {
+        document.getElementById('text_area').textContent = UTF8ToString(text);
+    });
+}
 
 void MainLoop() {
     static auto windowSize = []() {
