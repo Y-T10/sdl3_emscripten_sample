@@ -28,14 +28,6 @@ EM_JS(void, WriteText, (const char* text), {
 });
 
 void MainLoop() {
-    if (SDL_HasEvent(SDL_EVENT_QUIT)) {
-        // メインループを終了させる
-        emscripten_cancel_main_loop();
-        // プログラムを終了させる
-        exit(0);
-        return;
-    }
-
     static auto windowSize = []() {
       SDL_Point original = {};
       SDL_GetWindowSize(mainWindow.get(), &original.x, &original.y);
@@ -43,25 +35,14 @@ void MainLoop() {
                         .y = static_cast<float>(original.y)};
     }();
 
+    // イベント処理
     for (SDL_Event event = {}; SDL_PollEvent(&event);) {
-        // ウィンドウのサイズ変更に対応する
-        if (event.type == SDL_EventType::SDL_EVENT_WINDOW_RESIZED) {
-            windowSize = {
-                .x = static_cast<float>(event.window.data1),
-                .y = static_cast<float>(event.window.data2)
-            };
-            continue;
-        }
-
-        if (event.type == SDL_EventType::SDL_EVENT_DISPLAY_USABLE_BOUNDS_CHANGED) {
-            if (event.display.displayID != SDL_GetPrimaryDisplay()) {
-                continue;
-            }
-            SDL_SetWindowSize(mainWindow.get(), event.display.data1, event.display.data2);
-            windowSize = {
-                .x = static_cast<float>(event.display.data1),
-                .y = static_cast<float>(event.display.data2)
-            };
+        if (event.type == SDL_EventType::SDL_EVENT_QUIT) {
+            // メインループを終了させる
+            emscripten_cancel_main_loop();
+            // プログラムを終了させる
+            exit(0);
+            return;
         }
     }
 
