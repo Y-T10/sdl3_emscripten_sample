@@ -14,9 +14,11 @@
 #include <emscripten.h>
 #include <SDL3/SDL.h>
 
+// スマートポインタ
 using window_ptr = std::unique_ptr<SDL_Window, decltype([](SDL_Window* ptr) { SDL_DestroyWindow(ptr); })>;
 using renderer_ptr = std::unique_ptr<SDL_Renderer, decltype([](SDL_Renderer* ptr) { SDL_DestroyRenderer(ptr); })>;
 
+// 描画対象のウィンドウとレンダラ
 static window_ptr mainWindow = NULL;
 static renderer_ptr output = NULL;
 
