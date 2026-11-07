@@ -77,13 +77,19 @@ void MainLoop() {
         BoxMove.y = -1 * BoxMove.y;
     }
 
-    // フレームレートを60FPS と想定して図形を動かす
-    constexpr auto FPS = 60.0f;
-    BoxCenter.x += BoxMove.x * (1.0f / FPS);
-    BoxCenter.y += BoxMove.y * (1.0f / FPS);
+    // 1フレームの経過時間を取得する
+    static auto lastTimeNS = SDL_GetTicksNS();
+    const auto IntervalNS = SDL_GetTicksNS() - lastTimeNS;
+    const auto Interval  = static_cast<float>(IntervalNS) / SDL_NS_PER_SECOND;
+    // 最終経過時刻を更新する
+    lastTimeNS = IntervalNS + lastTimeNS;
+
+    // フレームレートを考慮して図形を動かす
+    BoxCenter.x += BoxMove.x * Interval;
+    BoxCenter.y += BoxMove.y * Interval;
 
     // 中心座標をp要素に書き出す
-    WriteText(std::format("Box: {{{:03.0f}, {:03.0f}}}", BoxCenter.x, BoxCenter.y).c_str());
+    WriteText(std::format("FPS: {:03.3f}\nBox: {{{:03.0f}, {:03.0f}}}", 1.0f / Interval, BoxCenter.x, BoxCenter.y).c_str());
 
     // 画面を初期化する
     SDL_SetRenderDrawColorFloat(output.get(), 1.0f, 1.0f, 1.0f, 0.25f);
