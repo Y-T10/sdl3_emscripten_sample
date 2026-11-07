@@ -14,81 +14,82 @@
 #include <emscripten.h>
 #include <SDL3/SDL.h>
 
-constexpr int LogDebug = EM_LOG_CONSOLE | EM_LOG_DEBUG;
-
+// スマートポインタ
 using window_ptr = std::unique_ptr<SDL_Window, decltype([](SDL_Window* ptr) { SDL_DestroyWindow(ptr); })>;
 using renderer_ptr = std::unique_ptr<SDL_Renderer, decltype([](SDL_Renderer* ptr) { SDL_DestroyRenderer(ptr); })>;
 
+// 描画対象のウィンドウとレンダラ
 static window_ptr mainWindow = NULL;
 static renderer_ptr output = NULL;
 
-// `text_area`のテキストを更新する
-EM_JS(void, WriteText, (const char* text), {
-    document.getElementById('text_area').textContent = UTF8ToString(text);
-});
+// 図形情報
+constexpr int BoxLength = 50;
+constexpr int MoveMax = 150;
+
+namespace {
+    // `text_area`を持つ要素を更新する
+    EM_JS(void, WriteText, (const char* text), {
+        document.getElementById('text_area').textContent = UTF8ToString(text);
+    });
+}
+
+// 図形の初期ベクトルを返す
+SDL_FPoint InitVector() noexcept {
+    constexpr auto MaxLevel = 4;
+    const SDL_Point InitLevel = {
+        .x = (SDL_rand(2)? 1: -1) * (SDL_rand(MaxLevel) + 1),
+        .y = (SDL_rand(2)? 1: -1) * (SDL_rand(MaxLevel) + 1),
+    };
+    return {
+        .x = MoveMax * (static_cast<float>(InitLevel.x) / MaxLevel) + 150,
+        .y = MoveMax * (static_cast<float>(InitLevel.y) / MaxLevel) + 150
+    };
+}
 
 void MainLoop() {
-    if (SDL_HasEvent(SDL_EVENT_QUIT)) {
-        // メインループを終了させる
-        emscripten_cancel_main_loop();
-        // プログラムを終了させる
-        exit(0);
-        return;
-    }
-
-    static auto windowSize = []() {
+    static const auto WindowSize = []() {
       SDL_Point original = {};
       SDL_GetWindowSize(mainWindow.get(), &original.x, &original.y);
       return SDL_FPoint{.x = static_cast<float>(original.x),
                         .y = static_cast<float>(original.y)};
     }();
 
+    // イベント処理
     for (SDL_Event event = {}; SDL_PollEvent(&event);) {
-        // ウィンドウのサイズ変更に対応する
-        if (event.type == SDL_EventType::SDL_EVENT_WINDOW_RESIZED) {
-            windowSize = {
-                .x = static_cast<float>(event.window.data1),
-                .y = static_cast<float>(event.window.data2)
-            };
-            continue;
-        }
-
-        if (event.type == SDL_EventType::SDL_EVENT_DISPLAY_USABLE_BOUNDS_CHANGED) {
-            if (event.display.displayID != SDL_GetPrimaryDisplay()) {
-                continue;
-            }
-            SDL_SetWindowSize(mainWindow.get(), event.display.data1, event.display.data2);
-            windowSize = {
-                .x = static_cast<float>(event.display.data1),
-                .y = static_cast<float>(event.display.data2)
-            };
+        if (event.type == SDL_EventType::SDL_EVENT_QUIT) {
+            // メインループを終了させる
+            emscripten_cancel_main_loop();
+            // プログラムを終了させる
+            exit(0);
+            return;
         }
     }
 
-    constexpr int BoxHalfWidth = 50, BoxHalfHeight = 50;
-    constexpr int MoveMax = 150;
-    const auto MaxLevel = 4;
-    const SDL_Point InitLevel = {
-        .x = (SDL_rand(2)? 1: -1) * (SDL_rand(MaxLevel) + 1),
-        .y = (SDL_rand(2)? 1: -1) * (SDL_rand(MaxLevel) + 1),
-    };
-    static SDL_FPoint BoxCenter = { .x = windowSize.x / 2, .y = windowSize.y / 2};
-    static SDL_FPoint BoxMove = {
-        .x = MoveMax * (static_cast<float>(InitLevel.x) / MaxLevel) + 150,
-        .y = MoveMax * (static_cast<float>(InitLevel.y) / MaxLevel) + 150
-    };
-    if ((BoxCenter.x <= BoxHalfWidth) || (BoxCenter.x + BoxHalfWidth) >= windowSize.x) {
+    // 図形の中心位置とベクトル
+    static SDL_FPoint BoxCenter = { .x = WindowSize.x / 2, .y = WindowSize.y / 2};
+    static SDL_FPoint BoxMove = InitVector();
+    
+    // ウィンドウの枠にて反射する
+    if ((BoxCenter.x <= BoxLength) || (BoxCenter.x + BoxLength) >= WindowSize.x) {
         BoxMove.x = -1 * BoxMove.x;
     }
-    if ((BoxCenter.y <= BoxHalfHeight) || (BoxCenter.y + BoxHalfHeight) >= windowSize.y) {
+    if ((BoxCenter.y <= BoxLength) || (BoxCenter.y + BoxLength) >= WindowSize.y) {
         BoxMove.y = -1 * BoxMove.y;
     }
-    constexpr auto FPS = 60.0f;
-    BoxCenter.x += BoxMove.x * (1.0f / FPS);
-    BoxCenter.y += BoxMove.y * (1.0f / FPS);
+
+    // 1フレームの経過時間を取得する
+    static auto lastTimeNS = SDL_GetTicksNS();
+    const auto IntervalNS = SDL_GetTicksNS() - lastTimeNS;
+    const auto Interval  = static_cast<float>(IntervalNS) / SDL_NS_PER_SECOND;
+    // 最終経過時刻を更新する
+    lastTimeNS = IntervalNS + lastTimeNS;
+
+    // フレームレートを考慮して図形を動かす
+    BoxCenter.x += BoxMove.x * Interval;
+    BoxCenter.y += BoxMove.y * Interval;
 
     // 中心座標をp要素に書き出す
-    WriteText(std::format("Box: {{{:03.0f}, {:03.0f}}}", BoxCenter.x, BoxCenter.y).c_str());
+    WriteText(std::format("FPS: {:03.3f}\nBox: {{{:03.0f}, {:03.0f}}}", 1.0f / Interval, BoxCenter.x, BoxCenter.y).c_str());
 
     // 画面を初期化する
     SDL_SetRenderDrawColorFloat(output.get(), 1.0f, 1.0f, 1.0f, 0.25f);
@@ -97,10 +98,10 @@ void MainLoop() {
     // 四角形を描画する
     SDL_SetRenderDrawColorFloat(output.get(), 0.0f, 1.0f, 0.0f, SDL_ALPHA_OPAQUE_FLOAT);
     const SDL_FRect DrawRect = {
-        .x = static_cast<float>(BoxCenter.x - BoxHalfWidth),
-        .y = static_cast<float>(BoxCenter.y - BoxHalfHeight),
-        .w = static_cast<float>(BoxHalfWidth * 2),
-        .h = static_cast<float>(BoxHalfHeight * 2)};
+        .x = static_cast<float>(BoxCenter.x - BoxLength),
+        .y = static_cast<float>(BoxCenter.y - BoxLength),
+        .w = static_cast<float>(BoxLength * 2),
+        .h = static_cast<float>(BoxLength * 2)};
     SDL_RenderFillRect(output.get(), &DrawRect);
 
     // 画面を更新する
@@ -110,7 +111,7 @@ void MainLoop() {
 int main() {
     // SDL を初期化
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
-        emscripten_log(LogDebug, std::format("SDL_Init failed: {:s}", SDL_GetError()).c_str());
+        std::print(stderr, "SDL_Init failed: {:s}", SDL_GetError());
         return 2;
     }
 
@@ -118,7 +119,7 @@ int main() {
     if (!SDL_CreateWindowAndRenderer(
             "サンプル実装", 600, 800, SDL_WINDOW_RESIZABLE,
             std::out_ptr(mainWindow), std::out_ptr(output))) {
-        emscripten_log(LogDebug, std::format("SDL_CreateWindowAndRenderer failed: {}", SDL_GetError()).c_str());
+        std::print(stderr, "SDL_CreateWindowAndRenderer failed: {}", SDL_GetError());
         return 2;
     }
 
@@ -138,7 +139,7 @@ int main() {
     emscripten_set_main_loop(MainLoop, 0, false);
     
     if (emscripten_set_main_loop_timing(EM_TIMING_RAF, 1) != 0) {
-        emscripten_log(LogDebug, std::format("emscripten_set_main_loop_timing failed").c_str());
+        std::print(stderr, "emscripten_set_main_loop_timing failed");
         return 1;
     }
 }
