@@ -35,3 +35,10 @@ target_link_options(Sample PRIVATE -sENVIRONMENT=['web'] -flto)
 ## * requestFullscreen プロパティがgetterのみを持つため、setter を無効化する
 ##     * 本設定はモジュールの利用に必要
 target_link_options(Sample PRIVATE -sEXPORTED_RUNTIME_METHODS=requestFullscreen)
+
+## ビルド後のデプロイ関連
+add_custom_command(
+    TARGET Sample POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E rename "${CMAKE_BINARY_DIR}/Sample.html" "${CMAKE_BINARY_DIR}/index.html"
+    COMMENT "rename HTML file name"
+)
