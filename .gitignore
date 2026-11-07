@@ -1,6 +1,7 @@
 ## ビルド関係
 *build*/
 CMakeUserPresets.json
+public/
 
 ## clangd 関係
 .cache/

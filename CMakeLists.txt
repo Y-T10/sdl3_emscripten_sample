@@ -16,9 +16,12 @@ add_subdirectory("${CMAKE_SOURCE_DIR}/SDL" EXCLUDE_FROM_ALL)
 ## SDL3 を除いた警告をエラーとする
 add_compile_options(-Werror)
 
+# ビルドターゲットを定義
 add_executable(Sample)
 # * HTMLファイルを生成するように指定する
 set_target_properties(Sample PROPERTIES SUFFIX ".html")
+# * ファイルの出力先を指定する
+set_target_properties(Sample PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/public")
 
 # 依存ファイル/ターゲットを指定
 target_sources(Sample PRIVATE main.cpp)
@@ -39,6 +42,6 @@ target_link_options(Sample PRIVATE -sEXPORTED_RUNTIME_METHODS=requestFullscreen)
 ## ビルド後のデプロイ関連
 add_custom_command(
     TARGET Sample POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E rename "${CMAKE_BINARY_DIR}/Sample.html" "${CMAKE_BINARY_DIR}/index.html"
+    COMMAND ${CMAKE_COMMAND} -E rename "${CMAKE_CURRENT_SOURCE_DIR}/public/Sample.html" "${CMAKE_CURRENT_SOURCE_DIR}/public/index.html"
     COMMENT "rename HTML file name"
 )
