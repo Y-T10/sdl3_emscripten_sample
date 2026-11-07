@@ -14,8 +14,6 @@
 #include <emscripten.h>
 #include <SDL3/SDL.h>
 
-constexpr int LogDebug = EM_LOG_CONSOLE | EM_LOG_DEBUG;
-
 using window_ptr = std::unique_ptr<SDL_Window, decltype([](SDL_Window* ptr) { SDL_DestroyWindow(ptr); })>;
 using renderer_ptr = std::unique_ptr<SDL_Renderer, decltype([](SDL_Renderer* ptr) { SDL_DestroyRenderer(ptr); })>;
 
@@ -105,7 +103,7 @@ void MainLoop() {
 int main() {
     // SDL を初期化
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
-        emscripten_log(LogDebug, std::format("SDL_Init failed: {:s}", SDL_GetError()).c_str());
+        std::print(stderr, "SDL_Init failed: {:s}", SDL_GetError());
         return 2;
     }
 
@@ -113,7 +111,7 @@ int main() {
     if (!SDL_CreateWindowAndRenderer(
             "サンプル実装", 600, 800, SDL_WINDOW_RESIZABLE,
             std::out_ptr(mainWindow), std::out_ptr(output))) {
-        emscripten_log(LogDebug, std::format("SDL_CreateWindowAndRenderer failed: {}", SDL_GetError()).c_str());
+        std::print(stderr, "SDL_CreateWindowAndRenderer failed: {}", SDL_GetError());
         return 2;
     }
 
@@ -133,7 +131,7 @@ int main() {
     emscripten_set_main_loop(MainLoop, 0, false);
     
     if (emscripten_set_main_loop_timing(EM_TIMING_RAF, 1) != 0) {
-        emscripten_log(LogDebug, std::format("emscripten_set_main_loop_timing failed").c_str());
+        std::print(stderr, "emscripten_set_main_loop_timing failed");
         return 1;
     }
 }
