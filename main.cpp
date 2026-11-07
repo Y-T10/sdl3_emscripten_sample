@@ -22,6 +22,10 @@ using renderer_ptr = std::unique_ptr<SDL_Renderer, decltype([](SDL_Renderer* ptr
 static window_ptr mainWindow = NULL;
 static renderer_ptr output = NULL;
 
+// 図形情報
+constexpr int BoxLength = 50;
+constexpr int MoveMax = 150;
+
 namespace {
     // `text_area`を持つ要素を更新する
     EM_JS(void, WriteText, (const char* text), {
@@ -29,8 +33,21 @@ namespace {
     });
 }
 
+// 図形の初期ベクトルを返す
+SDL_FPoint InitVector() noexcept {
+    constexpr auto MaxLevel = 4;
+    const SDL_Point InitLevel = {
+        .x = (SDL_rand(2)? 1: -1) * (SDL_rand(MaxLevel) + 1),
+        .y = (SDL_rand(2)? 1: -1) * (SDL_rand(MaxLevel) + 1),
+    };
+    return {
+        .x = MoveMax * (static_cast<float>(InitLevel.x) / MaxLevel) + 150,
+        .y = MoveMax * (static_cast<float>(InitLevel.y) / MaxLevel) + 150
+    };
+}
+
 void MainLoop() {
-    static auto windowSize = []() {
+    static const auto WindowSize = []() {
       SDL_Point original = {};
       SDL_GetWindowSize(mainWindow.get(), &original.x, &original.y);
       return SDL_FPoint{.x = static_cast<float>(original.x),
@@ -48,24 +65,19 @@ void MainLoop() {
         }
     }
 
-    constexpr int BoxHalfWidth = 50, BoxHalfHeight = 50;
-    constexpr int MoveMax = 150;
-    const auto MaxLevel = 4;
-    const SDL_Point InitLevel = {
-        .x = (SDL_rand(2)? 1: -1) * (SDL_rand(MaxLevel) + 1),
-        .y = (SDL_rand(2)? 1: -1) * (SDL_rand(MaxLevel) + 1),
-    };
-    static SDL_FPoint BoxCenter = { .x = windowSize.x / 2, .y = windowSize.y / 2};
-    static SDL_FPoint BoxMove = {
-        .x = MoveMax * (static_cast<float>(InitLevel.x) / MaxLevel) + 150,
-        .y = MoveMax * (static_cast<float>(InitLevel.y) / MaxLevel) + 150
-    };
-    if ((BoxCenter.x <= BoxHalfWidth) || (BoxCenter.x + BoxHalfWidth) >= windowSize.x) {
+    // 図形の中心位置とベクトル
+    static SDL_FPoint BoxCenter = { .x = WindowSize.x / 2, .y = WindowSize.y / 2};
+    static SDL_FPoint BoxMove = InitVector();
+    
+    // ウィンドウの枠にて反射する
+    if ((BoxCenter.x <= BoxLength) || (BoxCenter.x + BoxLength) >= WindowSize.x) {
         BoxMove.x = -1 * BoxMove.x;
     }
-    if ((BoxCenter.y <= BoxHalfHeight) || (BoxCenter.y + BoxHalfHeight) >= windowSize.y) {
+    if ((BoxCenter.y <= BoxLength) || (BoxCenter.y + BoxLength) >= WindowSize.y) {
         BoxMove.y = -1 * BoxMove.y;
     }
+
+    // フレームレートを60FPS と想定して図形を動かす
     constexpr auto FPS = 60.0f;
     BoxCenter.x += BoxMove.x * (1.0f / FPS);
     BoxCenter.y += BoxMove.y * (1.0f / FPS);
@@ -80,10 +92,10 @@ void MainLoop() {
     // 四角形を描画する
     SDL_SetRenderDrawColorFloat(output.get(), 0.0f, 1.0f, 0.0f, SDL_ALPHA_OPAQUE_FLOAT);
     const SDL_FRect DrawRect = {
-        .x = static_cast<float>(BoxCenter.x - BoxHalfWidth),
-        .y = static_cast<float>(BoxCenter.y - BoxHalfHeight),
-        .w = static_cast<float>(BoxHalfWidth * 2),
-        .h = static_cast<float>(BoxHalfHeight * 2)};
+        .x = static_cast<float>(BoxCenter.x - BoxLength),
+        .y = static_cast<float>(BoxCenter.y - BoxLength),
+        .w = static_cast<float>(BoxLength * 2),
+        .h = static_cast<float>(BoxLength * 2)};
     SDL_RenderFillRect(output.get(), &DrawRect);
 
     // 画面を更新する
