@@ -2,6 +2,8 @@
 
 ## 概要
 技術書『』にて扱うSDL3 アプリのリポジトリで、正方形がキャンバス内を跳ね返る様子を描画する．
+下記URL にてアプリを実行することができる．
+* https://sdl3-emscripten-sample.pages.dev/
 
 ## プログラムのビルド
 ビルドツールCMake とEmscripten SDK をインストールし、下記手順でHTML ファイル等を生成する．
