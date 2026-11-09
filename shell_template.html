@@ -9,7 +9,9 @@
     <title>Sample of SDL3 with Emscripten </title>
     <style>
         body.body {
+            /* 余白を無くす */
             margin: 0;
+            /* アイテムを中央寄せにする */
             min-height: 100dvh;
             display: flex;
             align-items: center;
@@ -18,12 +20,19 @@
         div.canvas_border {
             display: inline flow-root;
             border: 5px solid black;
-            position: relative; /* キャンバスと他要素を重ねるため */
+            /* キャンバスと他要素が重なるようにする */
+            position: relative;
         }
-        /* マウス座標を正しく取得するためCanvas の境界とパディングを削除する*/
         canvas.sdl_window {
+            /* inline の隙間を無くす*/
+            display: block;
+            /* SDL 側でリサイズイベントを発生させるため、CSS 側でサイズを指定する */
+            width: 75dvw;
+            height: 75dvh;
+            /* マウス座標を正しく取得するためCanvas の境界とパディングを削除する*/
             padding: 0%;
             border: 0px none;
+            /* 初期背景色を黒とする */
             background-color: black;
         }
         p.text_area {
