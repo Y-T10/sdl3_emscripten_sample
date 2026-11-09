@@ -36,8 +36,10 @@
         p.text_area {
             margin: 0.5lh 0 0 1ch;
             font-size: xx-large;
-            position: absolute; /* キャンバスと重ねるため */
-            white-space: pre-wrap; /* テキスト内の改行と空白文字を反映する */
+            position: absolute;
+            /* キャンバスと重ねるため */
+            white-space: pre-wrap;
+            /* テキスト内の改行と空白文字を反映する */
         }
     </style>
 </head>
@@ -71,7 +73,7 @@
             }
 
             // 標準出力関数
-            static print(...args){
+            static print(...args) {
                 console.log(args.join(' '));
             };
 
