@@ -8,13 +8,11 @@
     <!-- SDL3 のウィンドウタイトルで上書きされる -->
     <title>Sample of SDL3 with Emscripten </title>
     <style>
-        body.body {
-            /* 余白を無くす */
-            margin: 0;
-            /* アイテムを中央寄せにする */
-            min-height: 100dvh;
+        div.body {
+            /* top 以外の余白を無くす */
+            margin: 5dvh 0;
+            /* アイテムを水平中央寄せにする */
             display: flex;
-            align-items: center;
             justify-content: center;
         }
         div.canvas_border {
@@ -44,13 +42,22 @@
     </style>
 </head>
 
-<body class="body">
-    <div class="canvas_border">
-        <!-- テキストの書き出し先 -->
-        <p class="text_area" id="text_area">[ここにテキストが入る]</p>
-        <!-- このキャンバスがウィンドウに当たる -->
-        <canvas class="sdl_window" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
+<body>
+    <div class="body">
+        <div class="canvas_border">
+            <!-- テキストの書き出し先 -->
+            <p class="text_area" id="text_area">[ここにテキストが入る]</p>
+            <!-- このキャンバスがウィンドウに当たる -->
+            <canvas class="sdl_window" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
+        </div>
     </div>
+    <hr />
+    <p>
+        <small>
+            (c) 2026年11月 鳩鴨<br />
+            本コンテンツの閲覧および利用によって生じた損害等について一切の責任を負いかねます．
+        </small>
+    </p>
     <script type='text/javascript'>
         // Emscripten のモジュールクラス
         class EmModule {
