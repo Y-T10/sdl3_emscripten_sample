@@ -20,8 +20,9 @@
             border: 5px solid black;
             position: relative; /* キャンバスと他要素を重ねるため */
         }
-        /* the canvas *must not* have any border or padding, or mouse coords will be wrong */
+        /* マウス座標を正しく取得するためCanvas の境界とパディングを削除する*/
         canvas.sdl_window {
+            padding: 0%;
             border: 0px none;
             background-color: black;
         }
