@@ -73,8 +73,9 @@ void MainLoop() {
 
         // canvas のサイズ変更に対応する
         if (event.type == SDL_EventType::SDL_EVENT_WINDOW_RESIZED ||
-            event.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED) {
+            event.type == SDL_EventType::SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED) {
           outputSize = GetRenderSize(output);
+          std::print("Window size: {}, {}\n", event.window.data1, event.window.data2);
           continue;
         }
     }
@@ -140,6 +141,9 @@ int main() {
     }
 
     // タイトルを指定し、レンダラとウィンドウを生成する
+    // * CSS にてcanvas のサイズを指定するため、下記サイズは反映されない
+    //   * SDL3 内部関数`Emscripten_HandleResize`のコメントより、キャンバスのサイズ変更イベントを取得するため
+    //   * ref. `SDL_emscriptenevents.c`
     if (!SDL_CreateWindowAndRenderer(
             "サンプル実装", 600, 800, SDL_WINDOW_RESIZABLE,
             std::out_ptr(mainWindow), std::out_ptr(output))) {
