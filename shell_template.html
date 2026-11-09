@@ -6,7 +6,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <link rel="icon" href="data:;base64,=">
     <!-- SDL3 のウィンドウタイトルで上書きされる -->
-    <title>Hatogamo sample Page</title>
+    <title>Sample of SDL3 with Emscripten </title>
     <style>
         body.body {
             margin: 0;
@@ -20,8 +20,9 @@
             border: 5px solid black;
             position: relative; /* キャンバスと他要素を重ねるため */
         }
-        /* the canvas *must not* have any border or padding, or mouse coords will be wrong */
+        /* マウス座標を正しく取得するためCanvas の境界とパディングを削除する*/
         canvas.sdl_window {
+            padding: 0%;
             border: 0px none;
             background-color: black;
         }

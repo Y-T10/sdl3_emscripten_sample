@@ -46,13 +46,20 @@ SDL_FPoint InitVector() noexcept {
     };
 }
 
+// レンダラーのサイズを取得する
+SDL_FPoint GetRenderSize(const renderer_ptr& render) noexcept {
+    if (!render) {
+        return {0.0f, 0.0f};
+    }
+    if (SDL_Point size = {}; SDL_GetRenderOutputSize(render.get(), &size.x, &size.y)) {
+        return {.x = static_cast<float>(size.x), .y = static_cast<float>(size.y)};
+    }
+    return {0.0f, 0.0f};
+};
+
 void MainLoop() {
-    static const auto WindowSize = []() {
-      SDL_Point original = {};
-      SDL_GetWindowSize(mainWindow.get(), &original.x, &original.y);
-      return SDL_FPoint{.x = static_cast<float>(original.x),
-                        .y = static_cast<float>(original.y)};
-    }();
+    // レンダラのサイズを保持する
+    static auto outputSize = GetRenderSize(output);
 
     // イベント処理
     for (SDL_Event event = {}; SDL_PollEvent(&event);) {
@@ -63,17 +70,34 @@ void MainLoop() {
             exit(0);
             return;
         }
+
+        // canvas のサイズ変更に対応する
+        if (event.type == SDL_EventType::SDL_EVENT_WINDOW_RESIZED ||
+            event.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED) {
+          outputSize = GetRenderSize(output);
+          continue;
+        }
     }
 
     // 図形の中心位置とベクトル
-    static SDL_FPoint BoxCenter = { .x = WindowSize.x / 2, .y = WindowSize.y / 2};
+    static SDL_FPoint BoxCenter = { .x = outputSize.x / 2, .y = outputSize.y / 2};
     static SDL_FPoint BoxMove = InitVector();
     
     // ウィンドウの枠にて反射する
-    if ((BoxCenter.x <= BoxLength) || (BoxCenter.x + BoxLength) >= WindowSize.x) {
+    if (BoxCenter.x < BoxLength) {
+        BoxCenter.x = BoxLength;
         BoxMove.x = -1 * BoxMove.x;
     }
-    if ((BoxCenter.y <= BoxLength) || (BoxCenter.y + BoxLength) >= WindowSize.y) {
+    if (BoxCenter.x > (outputSize.x - BoxLength)) {
+        BoxCenter.x = outputSize.x - BoxLength;
+        BoxMove.x = -1 * BoxMove.x;
+    }
+    if (BoxCenter.y <= BoxLength) {
+        BoxCenter.y = BoxLength;
+        BoxMove.y = -1 * BoxMove.y;
+    }
+    if (BoxCenter.y > (outputSize.y - BoxLength)) {
+        BoxCenter.y = outputSize.y - BoxLength;
         BoxMove.y = -1 * BoxMove.y;
     }
 
