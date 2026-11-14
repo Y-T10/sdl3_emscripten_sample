@@ -26,12 +26,10 @@ static renderer_ptr output = NULL;
 constexpr int BoxLength = 50;
 constexpr int MoveMax = 150;
 
-namespace {
-    // `text_area`を持つ要素を更新する
-    EM_JS(void, WriteText, (const char* text), {
-        document.getElementById('text_area').textContent = UTF8ToString(text);
-    });
-}
+// `text_area`を持つ要素を更新する
+EM_JS(void, WriteText, (const char* text), {
+    document.getElementById('text_area').textContent = UTF8ToString(text);
+});
 
 // 図形の初期ベクトルを返す
 SDL_FPoint InitVector() noexcept {
