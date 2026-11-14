@@ -140,7 +140,7 @@ int main() {
         return 2;
     }
 
-    // タイトルを指定し、レンダラとウィンドウを生成する
+    // タイトルを指定し、キャンバスを参照するレンダラとウィンドウを取得する
     // * CSS にてcanvas のサイズを指定するため、下記サイズは反映されない
     //   * SDL3 内部関数`Emscripten_HandleResize`のコメントより、キャンバスのサイズ変更イベントを取得するため
     //   * ref. `SDL_emscriptenevents.c`
@@ -148,6 +148,9 @@ int main() {
             "サンプル実装", 600, 800, SDL_WINDOW_RESIZABLE,
             std::out_ptr(mainWindow), std::out_ptr(output))) {
         std::print(stderr, "SDL_CreateWindowAndRenderer failed: {}", SDL_GetError());
+        // SDL3 を閉じて実行環境を破棄する
+        SDL_Quit();
+        exit(2);
         return 2;
     }
 
