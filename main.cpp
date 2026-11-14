@@ -59,16 +59,18 @@ void MainLoop() {
     // レンダラのサイズを保持する
     static auto outputSize = GetRenderSize(output);
 
+    // 終了イベントが存在するかを確認する
+    if (SDL_HasEvent(SDL_EventType::SDL_EVENT_QUIT)) {
+        // SDL3 を閉じる
+        SDL_Quit();
+        // メインループを終了させて実行環境を破棄する
+        emscripten_cancel_main_loop();
+        exit(0);
+        return;
+    }
+
     // イベント処理
     for (SDL_Event event = {}; SDL_PollEvent(&event);) {
-        if (event.type == SDL_EventType::SDL_EVENT_QUIT) {
-            // メインループを終了させる
-            emscripten_cancel_main_loop();
-            // プログラムを終了させる
-            exit(0);
-            return;
-        }
-
         // canvas のサイズ変更に対応する
         if (event.type == SDL_EventType::SDL_EVENT_WINDOW_RESIZED ||
             event.type == SDL_EventType::SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED) {
