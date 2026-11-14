@@ -168,9 +168,5 @@ int main() {
     SDL_SetRenderVSync(output.get(), 1);
     // * ブラウザの既定間隔で呼び出される関数を設定し、メイン関数を抜ける
     emscripten_set_main_loop(MainLoop, 0, false);
-    
-    if (emscripten_set_main_loop_timing(EM_TIMING_RAF, 1) != 0) {
-        std::print(stderr, "emscripten_set_main_loop_timing failed");
-        return 1;
-    }
+    return 0;
 }
