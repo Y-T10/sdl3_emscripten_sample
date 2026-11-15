@@ -38,6 +38,8 @@ target_link_options(Sample PRIVATE -sENVIRONMENT=['web'] -flto)
 ## * requestFullscreen プロパティがgetterのみを持つため、setter を無効化する
 ##     * 本設定はモジュールの利用に必要
 target_link_options(Sample PRIVATE -sEXPORTED_RUNTIME_METHODS=requestFullscreen)
+## * exit 関数を呼び出して実行環境を破棄させる
+target_link_options(Sample PRIVATE -sEXIT_RUNTIME=1)
 
 ## ビルド後のデプロイ関連
 add_custom_command(
