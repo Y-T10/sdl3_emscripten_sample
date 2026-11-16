@@ -75,7 +75,6 @@ void MainLoop() {
         if (event.type == SDL_EventType::SDL_EVENT_WINDOW_RESIZED ||
             event.type == SDL_EventType::SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED) {
           outputSize = GetRenderSize(output);
-          std::print("Window size: {}, {}\n", event.window.data1, event.window.data2);
           continue;
         }
     }
@@ -114,7 +113,7 @@ void MainLoop() {
     BoxCenter.y += BoxMove.y * Interval;
 
     // 中心座標をp要素に書き出す
-    WriteText(std::format("FPS: {:03.3f}\nBox: {{{:03.0f}, {:03.0f}}}", 1.0f / Interval, BoxCenter.x, BoxCenter.y).c_str());
+    WriteText(std::format("Box: {{{:03.0f}, {:03.0f}}}", BoxCenter.x, BoxCenter.y).c_str());
 
     // 画面を初期化する
     SDL_SetRenderDrawColorFloat(output.get(), 1.0f, 1.0f, 1.0f, 0.25f);
