@@ -14,13 +14,13 @@
 #include <emscripten.h>
 #include <SDL3/SDL.h>
 
-// スマートポインタ
-using window_ptr = std::unique_ptr<SDL_Window, decltype([](SDL_Window* ptr) { SDL_DestroyWindow(ptr); })>;
-using renderer_ptr = std::unique_ptr<SDL_Renderer, decltype([](SDL_Renderer* ptr) { SDL_DestroyRenderer(ptr); })>;
+// デリータ
+using window_deleter = decltype([](SDL_Window* ptr) { SDL_DestroyWindow(ptr); });
+using renderer_deleter = decltype([](SDL_Renderer* ptr) { SDL_DestroyRenderer(ptr); });
 
 // 描画対象のウィンドウとレンダラ
-static window_ptr mainWindow = NULL;
-static renderer_ptr output = NULL;
+static std::unique_ptr<SDL_Window, window_deleter> canvas = NULL;
+static std::unique_ptr<SDL_Renderer, renderer_deleter> context = NULL;
 
 // `text_area`を持つ要素を更新する
 EM_JS(void, WriteText, (const char* text), {
@@ -86,11 +86,11 @@ struct Box {
 };
 
 // レンダラーのサイズを取得する
-SDL_FPoint GetRenderSize(const renderer_ptr& render) noexcept {
+SDL_FPoint GetRenderSize(SDL_Renderer* render) noexcept {
     if (!render) {
         return {0.0f, 0.0f};
     }
-    if (SDL_Point size = {}; SDL_GetRenderOutputSize(render.get(), &size.x, &size.y)) {
+    if (SDL_Point size = {}; SDL_GetRenderOutputSize(render, &size.x, &size.y)) {
         return {.x = static_cast<float>(size.x), .y = static_cast<float>(size.y)};
     }
     return {0.0f, 0.0f};
@@ -98,7 +98,7 @@ SDL_FPoint GetRenderSize(const renderer_ptr& render) noexcept {
 
 void MainLoop() {
     // レンダラのサイズを保持する
-    static auto cavasSize = GetRenderSize(output);
+    static auto cavasSize = GetRenderSize(context.get());
     // 図形オブジェクト
     static auto fig = Box(SDL_FPoint{ .x = cavasSize.x / 2, .y = cavasSize.y / 2});
     // メインループの最終経過時刻
@@ -118,7 +118,7 @@ void MainLoop() {
     for (SDL_Event event = {}; SDL_PollEvent(&event);) {
         if (event.type == SDL_EVENT_WINDOW_RESIZED) {
             // キャンバスサイズを更新する
-            cavasSize = GetRenderSize(output);
+            cavasSize = GetRenderSize(context.get());
             continue;
         }
     }
@@ -135,15 +135,15 @@ void MainLoop() {
     WriteText(std::format("Box: {{{:03.0f}, {:03.0f}}}", CurArea.x, CurArea.y).c_str());
 
     // 画面を初期化する
-    SDL_SetRenderDrawColor(output.get(), 255, 255, 255, 255);
-    SDL_RenderClear(output.get());
+    SDL_SetRenderDrawColor(context.get(), 255, 255, 255, 255);
+    SDL_RenderClear(context.get());
 
     // 四角形を描画する
-    SDL_SetRenderDrawColor(output.get(), 0, 255, 0, 255);
-    SDL_RenderFillRect(output.get(), &CurArea);
+    SDL_SetRenderDrawColor(context.get(), 0, 255, 0, 255);
+    SDL_RenderFillRect(context.get(), &CurArea);
 
     // 画面を更新する
-    SDL_RenderPresent(output.get());
+    SDL_RenderPresent(context.get());
 }
 
 int main() {
@@ -167,7 +167,7 @@ int main() {
     //   * ref. `SDL_emscriptenevents.c`
     if (!SDL_CreateWindowAndRenderer(
             "サンプル実装", 0, 0, SDL_WINDOW_RESIZABLE,
-            std::out_ptr(mainWindow), std::out_ptr(output))) {
+            std::out_ptr(canvas), std::out_ptr(context))) {
         std::print(stderr, "SDL_CreateWindowAndRenderer failed: {}", SDL_GetError());
         // SDL3 を閉じて実行環境を破棄する
         SDL_Quit();
@@ -177,7 +177,7 @@ int main() {
 
     // メインループ関数の登録
     // * requestAnimationFrame を用いてメインループを登録するため、vSYNC を有効にする
-    SDL_SetRenderVSync(output.get(), 1);
+    SDL_SetRenderVSync(context.get(), 1);
     // * ブラウザの既定間隔で呼び出される関数を設定し、メイン関数を抜ける
     emscripten_set_main_loop(MainLoop, 0, false);
     return 0;
