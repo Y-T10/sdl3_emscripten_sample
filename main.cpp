@@ -22,27 +22,68 @@ using renderer_ptr = std::unique_ptr<SDL_Renderer, decltype([](SDL_Renderer* ptr
 static window_ptr mainWindow = NULL;
 static renderer_ptr output = NULL;
 
-// 図形情報
-constexpr int BoxLength = 50;
-constexpr int MoveMax = 150;
-
 // `text_area`を持つ要素を更新する
 EM_JS(void, WriteText, (const char* text), {
     document.getElementById('text_area').textContent = UTF8ToString(text);
 });
 
-// 図形の初期ベクトルを返す
-SDL_FPoint InitVector() noexcept {
-    constexpr auto MaxLevel = 4;
-    const SDL_Point InitLevel = {
-        .x = (SDL_rand(2)? 1: -1) * (SDL_rand(MaxLevel) + 1),
-        .y = (SDL_rand(2)? 1: -1) * (SDL_rand(MaxLevel) + 1),
+// 図形クラス
+struct Box {
+    Box(const SDL_FPoint& pos):
+    center(pos),
+    vec(InitVector()){};
+
+    void update(const SDL_FPoint& area, const float intervalNS) {
+        if (center.x <= SemiLength) {
+            center.x = SemiLength;
+            vec.x = -1 * vec.x;
+        }
+        if (center.x > (area.x - SemiLength)) {
+            center.x = area.x - SemiLength;
+            vec.x = -1 * vec.x;
+        }
+        if (center.y <= SemiLength) {
+            center.y = SemiLength;
+            vec.y = -1 * vec.y;
+        }
+        if (center.y > (area.y - SemiLength)) {
+            center.y = area.y - SemiLength;
+            vec.y = -1 * vec.y;
+        }
+
+        const auto Interval = intervalNS / SDL_NS_PER_SECOND;
+        center.x += vec.x * Interval;
+        center.y += vec.y * Interval;
+    }
+
+    SDL_FRect area() {
+        constexpr auto Length = SemiLength * 2;
+        return {
+            .x = center.x - SemiLength,
+            .y = center.y - SemiLength,
+            .w = Length, .h = Length
+        };
     };
-    return {
-        .x = MoveMax * (static_cast<float>(InitLevel.x) / MaxLevel) + 150,
-        .y = MoveMax * (static_cast<float>(InitLevel.y) / MaxLevel) + 150
-    };
-}
+
+    private:
+    static constexpr float SemiLength = 50;
+    SDL_FPoint center;
+    SDL_FPoint vec;
+
+    // ベクトルの初期値を返す関数
+    SDL_FPoint InitVector() noexcept {
+        constexpr auto MaxLevel = 4;
+        constexpr int MoveMax = 150;
+        const SDL_Point InitLevel = {
+            .x = (SDL_rand(2)? 1: -1) * (SDL_rand(MaxLevel) + 1),
+            .y = (SDL_rand(2)? 1: -1) * (SDL_rand(MaxLevel) + 1),
+        };
+        return {
+            .x = MoveMax * (static_cast<float>(InitLevel.x) / MaxLevel) + 150,
+            .y = MoveMax * (static_cast<float>(InitLevel.y) / MaxLevel) + 150
+        };
+    }
+};
 
 // レンダラーのサイズを取得する
 SDL_FPoint GetRenderSize(const renderer_ptr& render) noexcept {
@@ -58,6 +99,10 @@ SDL_FPoint GetRenderSize(const renderer_ptr& render) noexcept {
 void MainLoop() {
     // レンダラのサイズを保持する
     static auto cavasSize = GetRenderSize(output);
+    // 図形オブジェクト
+    static auto fig = Box(SDL_FPoint{ .x = cavasSize.x / 2, .y = cavasSize.y / 2});
+    // メインループの最終経過時刻
+    static auto lastTimeNS = SDL_GetTicksNS();
 
     // 終了イベントが存在するかを確認する
     if (SDL_HasEvent(SDL_EventType::SDL_EVENT_QUIT)) {
@@ -78,41 +123,16 @@ void MainLoop() {
         }
     }
 
-    // 図形の中心位置とベクトル
-    static SDL_FPoint BoxCenter = { .x = outputSize.x / 2, .y = outputSize.y / 2};
-    static SDL_FPoint BoxMove = InitVector();
-    
-    // ウィンドウの枠にて反射する
-    if (BoxCenter.x < BoxLength) {
-        BoxCenter.x = BoxLength;
-        BoxMove.x = -1 * BoxMove.x;
-    }
-    if (BoxCenter.x > (outputSize.x - BoxLength)) {
-        BoxCenter.x = outputSize.x - BoxLength;
-        BoxMove.x = -1 * BoxMove.x;
-    }
-    if (BoxCenter.y <= BoxLength) {
-        BoxCenter.y = BoxLength;
-        BoxMove.y = -1 * BoxMove.y;
-    }
-    if (BoxCenter.y > (outputSize.y - BoxLength)) {
-        BoxCenter.y = outputSize.y - BoxLength;
-        BoxMove.y = -1 * BoxMove.y;
-    }
-
-    // 1フレームの経過時間を取得する
-    static auto lastTimeNS = SDL_GetTicksNS();
+    // 1フレームの経過時間を求め、最終経過時刻を更新する
     const auto IntervalNS = SDL_GetTicksNS() - lastTimeNS;
-    const auto Interval  = static_cast<float>(IntervalNS) / SDL_NS_PER_SECOND;
-    // 最終経過時刻を更新する
     lastTimeNS = IntervalNS + lastTimeNS;
 
-    // フレームレートを考慮して図形を動かす
-    BoxCenter.x += BoxMove.x * Interval;
-    BoxCenter.y += BoxMove.y * Interval;
-
+    // 画像の位置を更新する
+    fig.update(cavasSize, IntervalNS);
+    
     // 中心座標をp要素に書き出す
-    WriteText(std::format("Box: {{{:03.0f}, {:03.0f}}}", BoxCenter.x, BoxCenter.y).c_str());
+    const auto CurArea = fig.area();
+    WriteText(std::format("Box: {{{:03.0f}, {:03.0f}}}", CurArea.x, CurArea.y).c_str());
 
     // 画面を初期化する
     SDL_SetRenderDrawColorFloat(output.get(), 1.0f, 1.0f, 1.0f, 0.25f);
@@ -120,12 +140,7 @@ void MainLoop() {
 
     // 四角形を描画する
     SDL_SetRenderDrawColorFloat(output.get(), 0.0f, 1.0f, 0.0f, SDL_ALPHA_OPAQUE_FLOAT);
-    const SDL_FRect DrawRect = {
-        .x = static_cast<float>(BoxCenter.x - BoxLength),
-        .y = static_cast<float>(BoxCenter.y - BoxLength),
-        .w = static_cast<float>(BoxLength * 2),
-        .h = static_cast<float>(BoxLength * 2)};
-    SDL_RenderFillRect(output.get(), &DrawRect);
+    SDL_RenderFillRect(output.get(), &CurArea);
 
     // 画面を更新する
     SDL_RenderPresent(output.get());
