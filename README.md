@@ -14,7 +14,7 @@ $ git clone https://github.com/Y-T10/sdl3_emscripten_sample.git
 $ cd sdl3_emscripten_sample/
 $ git submodule update --init --recursive
 $ emcmake cmake --preset default
-$ cmake --build --preset default
+$ cmake --build --preset default -j 8
 ```
 
 実行後`sdl3_emscripten_sample/build`内に下記ファイルが生成される．

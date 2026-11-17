@@ -26,12 +26,10 @@ static renderer_ptr output = NULL;
 constexpr int BoxLength = 50;
 constexpr int MoveMax = 150;
 
-namespace {
-    // `text_area`を持つ要素を更新する
-    EM_JS(void, WriteText, (const char* text), {
-        document.getElementById('text_area').textContent = UTF8ToString(text);
-    });
-}
+// `text_area`を持つ要素を更新する
+EM_JS(void, WriteText, (const char* text), {
+    document.getElementById('text_area').textContent = UTF8ToString(text);
+});
 
 // 図形の初期ベクトルを返す
 SDL_FPoint InitVector() noexcept {
@@ -61,21 +59,22 @@ void MainLoop() {
     // レンダラのサイズを保持する
     static auto outputSize = GetRenderSize(output);
 
+    // 終了イベントが存在するかを確認する
+    if (SDL_HasEvent(SDL_EventType::SDL_EVENT_QUIT)) {
+        // SDL3 を閉じる
+        SDL_Quit();
+        // メインループを終了させて実行環境を破棄する
+        emscripten_cancel_main_loop();
+        exit(0);
+        return;
+    }
+
     // イベント処理
     for (SDL_Event event = {}; SDL_PollEvent(&event);) {
-        if (event.type == SDL_EventType::SDL_EVENT_QUIT) {
-            // メインループを終了させる
-            emscripten_cancel_main_loop();
-            // プログラムを終了させる
-            exit(0);
-            return;
-        }
-
         // canvas のサイズ変更に対応する
         if (event.type == SDL_EventType::SDL_EVENT_WINDOW_RESIZED ||
             event.type == SDL_EventType::SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED) {
           outputSize = GetRenderSize(output);
-          std::print("Window size: {}, {}\n", event.window.data1, event.window.data2);
           continue;
         }
     }
@@ -114,7 +113,7 @@ void MainLoop() {
     BoxCenter.y += BoxMove.y * Interval;
 
     // 中心座標をp要素に書き出す
-    WriteText(std::format("FPS: {:03.3f}\nBox: {{{:03.0f}, {:03.0f}}}", 1.0f / Interval, BoxCenter.x, BoxCenter.y).c_str());
+    WriteText(std::format("Box: {{{:03.0f}, {:03.0f}}}", BoxCenter.x, BoxCenter.y).c_str());
 
     // 画面を初期化する
     SDL_SetRenderDrawColorFloat(output.get(), 1.0f, 1.0f, 1.0f, 0.25f);
@@ -140,7 +139,15 @@ int main() {
         return 2;
     }
 
-    // タイトルを指定し、レンダラとウィンドウを生成する
+    // 乱数初期化
+    {
+        SDL_Time current = 0;
+        SDL_GetCurrentTime(&current);
+        const auto RandomSeed = current + 1;
+        SDL_srand(RandomSeed);
+    }
+
+    // タイトルを指定し、キャンバスを参照するレンダラとウィンドウを取得する
     // * CSS にてcanvas のサイズを指定するため、下記サイズは反映されない
     //   * SDL3 内部関数`Emscripten_HandleResize`のコメントより、キャンバスのサイズ変更イベントを取得するため
     //   * ref. `SDL_emscriptenevents.c`
@@ -148,16 +155,10 @@ int main() {
             "サンプル実装", 600, 800, SDL_WINDOW_RESIZABLE,
             std::out_ptr(mainWindow), std::out_ptr(output))) {
         std::print(stderr, "SDL_CreateWindowAndRenderer failed: {}", SDL_GetError());
+        // SDL3 を閉じて実行環境を破棄する
+        SDL_Quit();
+        exit(2);
         return 2;
-    }
-
-    // 乱数初期化
-    {
-        SDL_Time current = 0;
-        SDL_GetCurrentTime(&current);
-        const auto RandomSeed = current + 1;
-        SDL_srand(RandomSeed);
-        std::print("random seed: {}\n", RandomSeed);
     }
 
     // メインループ関数の登録
@@ -165,9 +166,5 @@ int main() {
     SDL_SetRenderVSync(output.get(), 1);
     // * ブラウザの既定間隔で呼び出される関数を設定し、メイン関数を抜ける
     emscripten_set_main_loop(MainLoop, 0, false);
-    
-    if (emscripten_set_main_loop_timing(EM_TIMING_RAF, 1) != 0) {
-        std::print(stderr, "emscripten_set_main_loop_timing failed");
-        return 1;
-    }
+    return 0;
 }
