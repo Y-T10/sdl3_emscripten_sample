@@ -135,11 +135,11 @@ void MainLoop() {
     WriteText(std::format("Box: {{{:03.0f}, {:03.0f}}}", CurArea.x, CurArea.y).c_str());
 
     // 画面を初期化する
-    SDL_SetRenderDrawColorFloat(output.get(), 1.0f, 1.0f, 1.0f, 0.25f);
+    SDL_SetRenderDrawColor(output.get(), 255, 255, 255, 255);
     SDL_RenderClear(output.get());
 
     // 四角形を描画する
-    SDL_SetRenderDrawColorFloat(output.get(), 0.0f, 1.0f, 0.0f, SDL_ALPHA_OPAQUE_FLOAT);
+    SDL_SetRenderDrawColor(output.get(), 0, 255, 0, 255);
     SDL_RenderFillRect(output.get(), &CurArea);
 
     // 画面を更新する
