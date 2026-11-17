@@ -139,6 +139,14 @@ int main() {
         return 2;
     }
 
+    // 乱数初期化
+    {
+        SDL_Time current = 0;
+        SDL_GetCurrentTime(&current);
+        const auto RandomSeed = current + 1;
+        SDL_srand(RandomSeed);
+    }
+
     // タイトルを指定し、キャンバスを参照するレンダラとウィンドウを取得する
     // * CSS にてcanvas のサイズを指定するため、下記サイズは反映されない
     //   * SDL3 内部関数`Emscripten_HandleResize`のコメントより、キャンバスのサイズ変更イベントを取得するため
@@ -151,15 +159,6 @@ int main() {
         SDL_Quit();
         exit(2);
         return 2;
-    }
-
-    // 乱数初期化
-    {
-        SDL_Time current = 0;
-        SDL_GetCurrentTime(&current);
-        const auto RandomSeed = current + 1;
-        SDL_srand(RandomSeed);
-        std::print("random seed: {}\n", RandomSeed);
     }
 
     // メインループ関数の登録
