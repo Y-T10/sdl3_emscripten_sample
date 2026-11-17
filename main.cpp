@@ -166,7 +166,7 @@ int main() {
     //   * SDL3 内部関数`Emscripten_HandleResize`のコメントより、キャンバスのサイズ変更イベントを取得するため
     //   * ref. `SDL_emscriptenevents.c`
     if (!SDL_CreateWindowAndRenderer(
-            "サンプル実装", 600, 800, SDL_WINDOW_RESIZABLE,
+            "サンプル実装", 0, 0, SDL_WINDOW_RESIZABLE,
             std::out_ptr(mainWindow), std::out_ptr(output))) {
         std::print(stderr, "SDL_CreateWindowAndRenderer failed: {}", SDL_GetError());
         // SDL3 を閉じて実行環境を破棄する
