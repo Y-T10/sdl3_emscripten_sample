@@ -73,14 +73,14 @@ struct Box {
     // ベクトルの初期値を返す関数
     SDL_FPoint InitVector() noexcept {
         constexpr auto MaxLevel = 4;
-        constexpr int MoveMax = 150;
-        const SDL_Point InitLevel = {
-            .x = (SDL_rand(2)? 1: -1) * (SDL_rand(MaxLevel) + 1),
-            .y = (SDL_rand(2)? 1: -1) * (SDL_rand(MaxLevel) + 1),
+        constexpr int MoveMax = 300;
+        const SDL_FPoint InitLevel = {
+            .x = static_cast<float>(SDL_rand(MaxLevel) + 1) / MaxLevel,
+            .y = static_cast<float>(SDL_rand(MaxLevel) + 1) / MaxLevel,
         };
         return {
-            .x = MoveMax * (static_cast<float>(InitLevel.x) / MaxLevel) + 150,
-            .y = MoveMax * (static_cast<float>(InitLevel.y) / MaxLevel) + 150
+            .x = (SDL_rand(2)? 1.0f: -1.0f) * MoveMax * InitLevel.x,
+            .y = (SDL_rand(2)? 1.0f: -1.0f) * MoveMax * InitLevel.y
         };
     }
 };
