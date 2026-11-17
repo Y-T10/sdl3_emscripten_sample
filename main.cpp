@@ -57,7 +57,7 @@ SDL_FPoint GetRenderSize(const renderer_ptr& render) noexcept {
 
 void MainLoop() {
     // レンダラのサイズを保持する
-    static auto outputSize = GetRenderSize(output);
+    static auto cavasSize = GetRenderSize(output);
 
     // 終了イベントが存在するかを確認する
     if (SDL_HasEvent(SDL_EventType::SDL_EVENT_QUIT)) {
@@ -71,11 +71,10 @@ void MainLoop() {
 
     // イベント処理
     for (SDL_Event event = {}; SDL_PollEvent(&event);) {
-        // canvas のサイズ変更に対応する
-        if (event.type == SDL_EventType::SDL_EVENT_WINDOW_RESIZED ||
-            event.type == SDL_EventType::SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED) {
-          outputSize = GetRenderSize(output);
-          continue;
+        if (event.type == SDL_EVENT_WINDOW_RESIZED) {
+            // キャンバスサイズを更新する
+            cavasSize = GetRenderSize(output);
+            continue;
         }
     }
 
