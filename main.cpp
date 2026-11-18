@@ -15,12 +15,18 @@
 #include <SDL3/SDL.h>
 
 // デリータ
-using window_deleter = decltype([](SDL_Window* ptr) { SDL_DestroyWindow(ptr); });
-using renderer_deleter = decltype([](SDL_Renderer* ptr) { SDL_DestroyRenderer(ptr); });
+using renderer_deleter = decltype([](SDL_Renderer* ptr) {
+    auto tgt = SDL_GetRenderWindow(ptr);
+    SDL_DestroyRenderer(ptr);
+    if (tgt != nullptr) {
+        SDL_DestroyWindow(tgt);
+    }
+});
+// スマートポインタ
+using renderer_ptr = std::unique_ptr<SDL_Renderer, renderer_deleter>;
 
-// 描画対象のウィンドウとレンダラ
-static std::unique_ptr<SDL_Window, window_deleter> canvas = NULL;
-static std::unique_ptr<SDL_Renderer, renderer_deleter> context = NULL;
+// canvas 要素の描画コンテキスト
+static renderer_ptr context = NULL;
 
 // `text_area`を持つ要素を更新する
 EM_JS(void, WriteText, (const char* text), {
@@ -86,11 +92,11 @@ struct Box {
 };
 
 // レンダラーのサイズを取得する
-SDL_FPoint GetRenderSize(SDL_Renderer* render) noexcept {
+SDL_FPoint GetRenderSize(const renderer_ptr& render) noexcept {
     if (!render) {
         return {0.0f, 0.0f};
     }
-    if (SDL_Point size = {}; SDL_GetRenderOutputSize(render, &size.x, &size.y)) {
+    if (SDL_Point size = {}; SDL_GetRenderOutputSize(render.get(), &size.x, &size.y)) {
         return {.x = static_cast<float>(size.x), .y = static_cast<float>(size.y)};
     }
     return {0.0f, 0.0f};
@@ -165,11 +171,16 @@ int main() {
     // * CSS にてcanvas のサイズを指定するため、下記サイズは反映されない
     //   * SDL3 内部関数`Emscripten_HandleResize`のコメントより、キャンバスのサイズ変更イベントを取得するため
     //   * ref. `SDL_emscriptenevents.c`
-    if (!SDL_CreateWindowAndRenderer(
-            "サンプル実装", 0, 0, SDL_WINDOW_RESIZABLE,
-            std::out_ptr(canvas), std::out_ptr(context))) {
-        std::print(stderr, "SDL_CreateWindowAndRenderer failed: {}", SDL_GetError());
-        // SDL3 を閉じて実行環境を破棄する
+    auto target = SDL_CreateWindow("サンプル実装", 0, 0, SDL_WINDOW_RESIZABLE);
+    if (!target){
+        std::print(stderr, "SDL_CreateWindow failed: {}", SDL_GetError());
+        SDL_Quit();
+        exit(2);
+        return 1;
+    }
+    context = renderer_ptr(SDL_CreateRenderer(target, nullptr));
+    if (!context) {
+        std::print(stderr, "SDL_CreateRenderer failed: {}", SDL_GetError());
         SDL_Quit();
         exit(2);
         return 2;
