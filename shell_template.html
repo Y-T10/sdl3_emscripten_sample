@@ -5,43 +5,7 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <link rel="icon" href="data:;base64,=">
-    <!-- SDL3 のウィンドウタイトルで上書きされる -->
-    <title>Sample of SDL3 with Emscripten </title>
-    <style>
-        div.body {
-            /* top 以外の余白を無くす */
-            margin: 5dvh 0;
-            /* アイテムを水平中央寄せにする */
-            display: flex;
-            justify-content: center;
-        }
-        div.canvas_border {
-            display: inline flow-root;
-            border: 5px solid black;
-            /* キャンバスと他要素が重なるようにする */
-            position: relative;
-        }
-        canvas.sdl_window {
-            /* inline の隙間を無くす*/
-            display: block;
-            /* SDL 側でリサイズイベントを発生させるため、CSS 側でサイズを指定する */
-            width: 50dvw;
-            height: calc(75dvh - 3lh);
-            /* マウス座標を正しく取得するためCanvas の境界とパディングを削除する*/
-            padding: 0%;
-            border: 0px none;
-            /* 初期背景色を黒とする */
-            background-color: black;
-        }
-        p.text_area {
-            margin: 0.5lh 0 0 1ch;
-            font-size: xx-large;
-            position: absolute;
-            /* キャンバスと重ねるため */
-            white-space: pre-wrap;
-            /* テキスト内の改行と空白文字を反映する */
-        }
-    </style>
+    <link rel="stylesheet" href="Sample.css">
 </head>
 
 <body>
