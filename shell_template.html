@@ -30,20 +30,6 @@
             constructor() {
                 // SDL3の描画先キャンバスを設定
                 this.canvas = document.getElementById('canvas');
-                this.canvas.addEventListener("webglcontextlost", (e) => {
-                    alert('ウィンドウの描画ができないためページをリロードしてください．');
-                    e.preventDefault();
-                }, false);
-            }
-
-            // 標準出力関数
-            static print(...args) {
-                console.log(args.join(' '));
-            };
-
-            // エラーメッセージ出力関数
-            static printErr(...args) {
-                console.error(args.join(' '));
             }
         };
         // モジュールオブジェクトを生成する
