@@ -104,9 +104,9 @@ SDL_FPoint GetRenderSize(const renderer_ptr& render) noexcept {
 
 void MainLoop() {
     // レンダラのサイズを保持する
-    static auto cavasSize = GetRenderSize(context.get());
+    static auto canvasSize = GetRenderSize(context);
     // 図形オブジェクト
-    static auto fig = Box(SDL_FPoint{ .x = cavasSize.x / 2, .y = cavasSize.y / 2});
+    static auto fig = Box(SDL_FPoint{ .x = canvasSize.x / 2, .y = canvasSize.y / 2});
     // メインループの最終経過時刻
     static auto lastTimeNS = SDL_GetTicksNS();
 
@@ -124,7 +124,7 @@ void MainLoop() {
     for (SDL_Event event = {}; SDL_PollEvent(&event);) {
         if (event.type == SDL_EVENT_WINDOW_RESIZED) {
             // キャンバスサイズを更新する
-            cavasSize = GetRenderSize(context.get());
+            canvasSize = GetRenderSize(context);
             continue;
         }
     }
@@ -134,7 +134,7 @@ void MainLoop() {
     lastTimeNS = IntervalNS + lastTimeNS;
 
     // 画像の位置を更新する
-    fig.update(cavasSize, IntervalNS);
+    fig.update(canvasSize, IntervalNS);
     
     // 中心座標をp要素に書き出す
     const auto CurArea = fig.area();
@@ -163,8 +163,7 @@ int main() {
     {
         SDL_Time current = 0;
         SDL_GetCurrentTime(&current);
-        const auto RandomSeed = current + 1;
-        SDL_srand(RandomSeed);
+        SDL_srand(current + 1);
     }
 
     // タイトルを指定し、キャンバスを参照するレンダラとウィンドウを取得する
