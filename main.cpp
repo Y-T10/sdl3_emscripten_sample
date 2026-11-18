@@ -39,21 +39,21 @@ struct Box {
     center(pos),
     vec(InitVector()){};
 
-    void update(const SDL_FPoint& area, const float intervalNS) {
+    void update(const SDL_FPoint& size, const float intervalNS) noexcept {
         if (center.x <= SemiLength) {
             center.x = SemiLength;
             vec.x = -1 * vec.x;
         }
-        if (center.x > (area.x - SemiLength)) {
-            center.x = area.x - SemiLength;
+        if (center.x > (size.x - SemiLength)) {
+            center.x = size.x - SemiLength;
             vec.x = -1 * vec.x;
         }
         if (center.y <= SemiLength) {
             center.y = SemiLength;
             vec.y = -1 * vec.y;
         }
-        if (center.y > (area.y - SemiLength)) {
-            center.y = area.y - SemiLength;
+        if (center.y > (size.y - SemiLength)) {
+            center.y = size.y - SemiLength;
             vec.y = -1 * vec.y;
         }
 
@@ -62,7 +62,7 @@ struct Box {
         center.y += vec.y * Interval;
     }
 
-    SDL_FRect area() {
+    SDL_FRect area() noexcept {
         constexpr auto Length = SemiLength * 2;
         return {
             .x = center.x - SemiLength,
