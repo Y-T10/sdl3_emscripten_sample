@@ -9,12 +9,12 @@
 </head>
 
 <body>
-    <div class="body">
-        <div class="canvas_border">
+    <div id="anchor">
+        <div id="border">
             <!-- テキストの書き出し先 -->
             <p id="text"></p>
-            <!-- このキャンバスがウィンドウに当たる -->
-            <canvas class="sdl_window" id="canvas" tabindex=-1></canvas>
+            <!-- IDの値よりSDL がキャンバスに描画する -->
+            <canvas id="canvas" tabindex=-1></canvas>
         </div>
     </div>
     <hr />
@@ -25,15 +25,8 @@
         </small>
     </p>
     <script type='text/javascript'>
-        // Emscripten のモジュールクラス
-        class EmModule {
-            constructor() {
-                // SDL3の描画先キャンバスを設定
-                this.canvas = document.getElementById('canvas');
-            }
-        };
-        // モジュールオブジェクトを生成する
-        let Module = new EmModule();
+        // 空のモジュールオブジェクトを定義する
+        let Module = {};
     </script>
     {{{ SCRIPT }}}
 </body>

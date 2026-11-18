@@ -1,19 +1,5 @@
-div.body {
-    /* top 以外の余白を無くす */
-    margin: 5dvh 0;
-    /* アイテムを水平中央寄せにする */
-    display: flex;
-    justify-content: center;
-}
-
-div.canvas_border {
-    display: inline flow-root;
-    border: 5px solid black;
-    /* キャンバスと他要素が重なるようにする */
-    position: relative;
-}
-
-canvas.sdl_window {
+/* SDL の描画先キャンバスのスタイル */
+canvas#canvas {
     /* inline の隙間を無くす*/
     display: block;
     /* SDL 側でリサイズイベントを発生させるため、CSS 側でサイズを指定する */
@@ -28,9 +14,24 @@ canvas.sdl_window {
 
 p#text {
     margin: 0.5lh 0 0 1ch;
-    font-size: xx-large;
-    position: absolute;
     /* キャンバスと重ねるため */
+    position: absolute;
+    /* フォントサイズを大きくし、改行と空白文字を反映する */
+    font-size: xx-large;
     white-space: pre-wrap;
-    /* テキスト内の改行と空白文字を反映する */
+}
+
+div#border {
+    display: inline flow-root;
+    border: 5px solid black;
+    /* キャンバスと他要素が重なるようにする */
+    position: relative;
+}
+
+div#anchor {
+    /* top 以外の余白を無くす */
+    margin: 5dvh 0;
+    /* アイテムを水平中央寄せにする */
+    display: flex;
+    justify-content: center;
 }
