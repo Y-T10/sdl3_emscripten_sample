@@ -7,6 +7,7 @@ canvas#canvas {
     height: calc(75dvh - 3lh);
     /* 初期背景色を黒とする */
     background-color: black;
+    border: 5px solid black;
 }
 
 p#text {
@@ -19,8 +20,6 @@ p#text {
 }
 
 div#border {
-    display: inline flow-root;
-    border: 5px solid black;
     /* キャンバスと他要素が重なるようにする */
     position: relative;
 }
