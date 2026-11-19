@@ -5,9 +5,6 @@ canvas#canvas {
     /* SDL 側でリサイズイベントを発生させるため、CSS 側でサイズを指定する */
     width: 50dvw;
     height: calc(75dvh - 3lh);
-    /* マウス座標を正しく取得するためCanvas の境界とパディングを削除する*/
-    padding: 0%;
-    border: 0px none;
     /* 初期背景色を黒とする */
     background-color: black;
 }
