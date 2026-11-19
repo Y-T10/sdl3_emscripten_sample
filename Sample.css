@@ -1,0 +1,33 @@
+/* SDL の描画先キャンバスのスタイル */
+canvas#canvas {
+    /* inline の隙間を無くす*/
+    display: block;
+    /* SDL 側でリサイズイベントを発生させるため、CSS 側でサイズを指定する */
+    width: 50dvw;
+    height: calc(75dvh - 3lh);
+    /* 初期背景色を黒とする */
+    background-color: black;
+    border: 5px solid black;
+}
+
+p#text {
+    margin: 0.5lh 0 0 1ch;
+    /* キャンバスと重ねるため */
+    position: absolute;
+    /* フォントサイズを大きくし、改行と空白文字を反映する */
+    font-size: xx-large;
+    white-space: pre-wrap;
+}
+
+div#border {
+    /* キャンバスと他要素が重なるようにする */
+    position: relative;
+}
+
+div#anchor {
+    /* top 以外の余白を無くす */
+    margin: 5dvh 0;
+    /* アイテムを水平中央寄せにする */
+    display: flex;
+    justify-content: center;
+}

@@ -16,8 +16,8 @@ set_target_properties(Sample PROPERTIES
 target_sources(Sample PRIVATE main.cpp)
 target_link_libraries(Sample PRIVATE SDL3::SDL3)
 set_target_properties(Sample PROPERTIES
-  LINK_DEPENDS
-  "${CMAKE_CURRENT_SOURCE_DIR}/shell_template.html"
+  LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/shell_template.html"
+  LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Sample.css"
 )
 
 target_compile_options(Sample PRIVATE -Wall -O2)
@@ -30,6 +30,13 @@ target_link_options(Sample PRIVATE
   -sEXIT_RUNTIME=1
 )
 
+add_custom_command(
+  TARGET Sample POST_BUILD
+  COMMAND 
+    ${CMAKE_COMMAND} -E copy
+    "${CMAKE_CURRENT_SOURCE_DIR}/Sample.css"
+    "${CMAKE_CURRENT_SOURCE_DIR}/public/"
+)
 add_custom_command(
   TARGET Sample POST_BUILD
   COMMAND 
