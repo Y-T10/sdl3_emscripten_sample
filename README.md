@@ -1,7 +1,7 @@
 # Sample of SDL3 with Emscripten 
 
 ## 概要
-技術書『』にて扱うSDL3 アプリのリポジトリで、正方形がキャンバス内を跳ね返る様子を描画する．
+技術書『C++でWebページ作成　EmscriptenとSDLでWebページを作る本』にて扱うWeb ページのリポジトリで、正方形がキャンバス内を跳ね返る様子を描画する．
 下記URL にてアプリの様子を確認することができる．
 
 * https://sdl3-emscripten-sample.pages.dev/
