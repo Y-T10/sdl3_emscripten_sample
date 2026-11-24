@@ -1,0 +1,26 @@
+--- a/SDL/src/video/emscripten/SDL_emscriptenvideo.c
++++ b/SDL/src/video/emscripten/SDL_emscriptenvideo.c
+@@ -626,6 +626,9 @@ static bool Emscripten_CreateWindow(SDL_VideoDevice *_this, SDL_Window *window,
+ 
+     // Make the emscripten "fullscreen" button go through SDL.
+     MAIN_THREAD_EM_ASM({
++        if (Reflect.getOwnPropertyDescriptor(Module, 'set') === undefined) {
++            return;
++        }
+         Module['requestFullscreen'] = function(lockPointer, resizeCanvas) {
+             _requestFullscreenThroughSDL($0);
+         };
+@@ -703,7 +706,12 @@ static void Emscripten_DestroyWindow(SDL_VideoDevice *_this, SDL_Window *window)
+ 
+     MAIN_THREAD_EM_ASM({
+         // just ignore clicks on the fullscreen button while there's no SDL window.
+-        Module['requestFullscreen'] = function(lockPointer, resizeCanvas) {};
++        if (Reflect.getOwnPropertyDescriptor(Module, 'set') === undefined) {
++            return;
++        }
++        if (false) {
++            Module['requestFullscreen'] = function(lockPointer, resizeCanvas) {};
++        }
+     });
+ }
+ 

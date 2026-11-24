@@ -6,6 +6,17 @@ project(Sample
 
 add_subdirectory("${CMAKE_SOURCE_DIR}/SDL" EXCLUDE_FROM_ALL)
 
+
+find_package(Patch)
+if(NOT ${Patch_FOUND})
+  message(FATAL_ERROR "Patch command is not found.")
+  message(FATAL_ERROR "You need to apply patches manually.")
+endif()
+## requestFullscreen 対策
+execute_process(
+  COMMAND ${Patch_EXECUTABLE} -p1 -i "${CMAKE_CURRENT_SOURCE_DIR}/patch/fix_setter_error.patch"
+)
+
 add_executable(Sample)
 set_target_properties(Sample PROPERTIES SUFFIX ".html")
 set_target_properties(Sample PROPERTIES
@@ -44,9 +55,4 @@ add_custom_command(
     ${CMAKE_COMMAND} -E rename
     "${CMAKE_CURRENT_SOURCE_DIR}/public/Sample.html"
     "${CMAKE_CURRENT_SOURCE_DIR}/public/index.html"
-)
-
-## セッターを持たないモジュールへの代入対策
-target_link_options(Sample PRIVATE
-  -sEXPORTED_RUNTIME_METHODS=requestFullscreen
 )
